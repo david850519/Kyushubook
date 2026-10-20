@@ -1,0 +1,577 @@
+.trip-reading .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: calc(64px + env(safe-area-inset-top));
+  background: #fbfcfa;
+}
+.trip-reading .main-content {
+  max-width: 1080px;
+  padding: 28px 24px 120px;
+}
+.trip-reading .page-heading {
+  min-height: 124px;
+  margin-bottom: 18px;
+}
+.trip-reading .page-heading > div:first-child {
+  max-width: calc(100% - 102px);
+}
+.trip-reading .page-heading h1 {
+  font-size: 28px;
+  line-height: 1.5;
+}
+.trip-reading .page-subtitle {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.trip-reading .offline-pill {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 9px;
+}
+.trip-reading .illustration-road {
+  width: 112px;
+  height: 64px;
+  top: 49px;
+}
+.trip-reading .trip-tools {
+  margin-bottom: 24px;
+}
+.trip-reading .trip-count {
+  font-size: 9px;
+  gap: 6px;
+}
+.trip-reading .search-box {
+  width: 140px;
+}
+.trip-reading .section-heading h2 {
+  font-size: 18px;
+  font-weight: 500;
+}
+.trip-reading .section-heading > span {
+  font-size: 9px;
+}
+.trip-reading .trip-photo {
+  margin-bottom: 30px;
+}
+.trip-reading .trip-photo > button {
+  aspect-ratio: 16 / 10;
+  border-radius: 4px;
+}
+.trip-reading .journey-days {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+}
+.trip-reading .day-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 18px;
+  gap: 14px;
+  border-top: 0;
+  padding: 21px 0;
+  align-items: start;
+}
+.trip-reading .day-number {
+  font-size: 27px;
+  min-width: 0;
+  padding-top: 3px;
+}
+.trip-reading .day-number small {
+  font-size: 8px;
+  margin-bottom: 6px;
+}
+.trip-reading .day-title > small {
+  font-size: 10px;
+}
+.trip-reading .day-title strong {
+  font-size: 20px;
+  line-height: 1.5;
+  margin: 6px 0;
+}
+.trip-reading .day-row > svg {
+  align-self: center;
+}
+.trip-reading .day-title > .day-highlights {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #77847b;
+}
+.trip-reading .day-title > .day-stay {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #879388;
+}
+.trip-reading .day-stay > svg {
+  flex-shrink: 0;
+}
+.trip-reading .day-stay > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.trip-reading .journey-wallet-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  margin-top: 24px;
+  padding: 20px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  color: var(--green);
+}
+.trip-reading .journey-wallet-link > span {
+  flex: 1;
+  font-family: var(--heading);
+  font-size: 17px;
+}
+.trip-reading .journey-wallet-link small {
+  display: block;
+  font-family: var(--body);
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 5px;
+}
+.trip-reading .reading-tabs {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  margin-bottom: 28px;
+  border-radius: 6px;
+  background: #edf1ec;
+}
+.trip-reading .reading-tabs button {
+  flex: 1;
+  min-width: 0;
+  min-height: 37px;
+  padding: 7px;
+  border-radius: 4px;
+  color: #7b887e;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.trip-reading .reading-tabs button[aria-pressed="true"] {
+  background: #fff;
+  color: #3d6050;
+  box-shadow: 0 1px 4px #29412f0a;
+}
+.trip-reading .reading-timeline > li {
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 15px;
+}
+.trip-reading .reading-timeline > li::before {
+  left: 11px;
+  top: 27px;
+}
+.trip-reading .reading-timeline .timeline-marker {
+  width: 24px;
+  height: 24px;
+  font-size: 8px;
+  border-color: #dce5da;
+  color: #8b9b8b;
+}
+.trip-reading .place-body {
+  min-width: 0;
+  padding: 0 0 25px;
+}
+.trip-reading .place-meta {
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 6px;
+  font-size: 9px;
+}
+.trip-reading .place-meta > span:first-child {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ab7d88;
+}
+.trip-reading .place-meta time {
+  color: #536d5b;
+  font-size: 10px;
+}
+.trip-reading .confirmation-mark {
+  display: inline-flex;
+  align-items: center;
+  color: #a77363;
+  font-size: 9px;
+  line-height: 1.5;
+  padding: 2px 5px;
+  background: #f8efea;
+  border-radius: 3px;
+}
+.trip-reading .place-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.trip-reading .place-heading h3 {
+  min-width: 0;
+  font-size: 20px;
+  line-height: 1.55;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.trip-reading .place-heading .map-link {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 9px;
+  margin-top: 1px;
+  background: #eff3ed;
+  color: #66816a;
+}
+.trip-reading .place-english {
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.trip-reading .place-excerpt {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.9;
+  margin: 10px 0 0;
+  color: #6e7c70;
+}
+.trip-reading .reading-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  padding: 7px 0;
+  list-style: none;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1.7;
+  color: #89968a;
+}
+.trip-reading .reading-details > summary::-webkit-details-marker {
+  display: none;
+}
+.trip-reading .reading-details > summary svg {
+  flex-shrink: 0;
+  transition: transform 0.18s;
+}
+.trip-reading .reading-details[open] > summary svg {
+  transform: rotate(180deg);
+}
+.trip-reading .reading-details-body {
+  padding: 3px 0 12px;
+}
+.trip-reading .reading-details-body p {
+  font-size: 12px;
+  line-height: 1.95;
+  color: #627365;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+.trip-reading .reading-details-body .place-note {
+  font-size: 11px;
+  padding-left: 10px;
+}
+.trip-reading .day-pagination {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+}
+.trip-reading .day-pagination button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  min-width: 0;
+  padding: 20px 0;
+  font-size: 11px;
+  color: var(--green);
+}
+.trip-reading .day-pagination button > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trip-reading .day-pagination button > svg {
+  flex-shrink: 0;
+}
+.trip-reading .day-pagination button:disabled {
+  opacity: 0.35;
+}
+.trip-reading .wallet-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.trip-reading .wallet-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 17px 12px;
+  background: #edf3ee;
+  color: #416551;
+  border-radius: 6px;
+  text-align: left;
+}
+.trip-reading .wallet-shortcut:nth-child(2) {
+  background: #f5ebee;
+  color: #966b7c;
+}
+.trip-reading .wallet-shortcut > svg {
+  flex-shrink: 0;
+}
+.trip-reading .wallet-shortcut > svg:last-child {
+  width: 13px;
+  margin-left: auto;
+}
+.trip-reading .wallet-shortcut strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+}
+.trip-reading .wallet-shortcut small {
+  display: block;
+  font-size: 7px;
+  line-height: 1.6;
+  margin-top: 6px;
+}
+.trip-reading .wallet-group {
+  margin: 0 0 32px;
+}
+.trip-reading .wallet-group > .section-heading {
+  margin-bottom: 14px;
+}
+.trip-reading .wallet-items {
+  display: grid;
+  gap: 12px;
+}
+.trip-reading .wallet-entry {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 20px;
+  margin: 0;
+  gap: 0;
+  border: 1px solid #e0e7de;
+  border-radius: 6px;
+  background: #fff;
+}
+.trip-reading .wallet-entry-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.trip-reading .wallet-entry-heading .small-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #8a9c8c;
+  font-size: 9px;
+}
+.trip-reading .wallet-entry-heading > time {
+  margin-left: auto;
+  color: #7d8c7f;
+  font-size: 9px;
+}
+.trip-reading .wallet-entry h2 {
+  font-size: 17px;
+  line-height: 1.65;
+  font-weight: 500;
+  color: #476750;
+  margin: 10px 0 6px;
+  overflow-wrap: anywhere;
+}
+.trip-reading .document-excerpt {
+  font-size: 12px;
+  line-height: 1.85;
+  color: #849082;
+  margin: 3px 0 8px;
+}
+.trip-reading .flight-entry h2 {
+  font-size: 12px;
+  color: #7f8c7e;
+  margin-top: 15px;
+}
+.trip-reading .flight-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 20px;
+}
+.trip-reading .flight-route > div:last-child {
+  text-align: right;
+}
+.trip-reading .flight-route strong {
+  display: block;
+  font-family: Georgia, serif;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: #3c5f4b;
+}
+.trip-reading .flight-route span {
+  display: block;
+  font-size: 10px;
+  color: #8c9c8c;
+  margin-top: 8px;
+}
+.trip-reading .flight-connection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #a6b8a6;
+}
+.trip-reading .flight-connection > span {
+  height: 1px;
+  margin: 0;
+  flex: 1;
+  background: #dce6da;
+}
+.trip-reading .document-details {
+  border-top: 1px dashed #e2e8de;
+  margin-top: 12px;
+}
+.trip-reading .document-details .reference-line {
+  background: #f4f6f0;
+  padding: 10px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+.trip-reading .attachment-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  color: #62816a;
+  font-size: 11px;
+  padding: 10px 0 0;
+  margin-top: auto;
+  text-align: left;
+}
+.trip-reading .attachment-button > svg:last-child {
+  margin-left: auto;
+}
+.trip-reading .wallet-files {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.trip-reading .wallet-files .wallet-entry {
+  padding: 15px;
+  min-height: 150px;
+}
+.trip-reading .wallet-files .wallet-entry h2 {
+  font-size: 14px;
+}
+.trip-reading .source-notes {
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+}
+.trip-reading .source-notes .reading-details-body section {
+  padding: 12px 0;
+}
+.trip-reading .source-notes h3 {
+  font-size: 14px;
+  color: #667b68;
+  margin-bottom: 10px;
+}
+@media (min-width: 800px) {
+  .trip-reading .main-content {
+    padding: 42px 50px 70px;
+  }
+  .trip-reading .page-heading {
+    min-height: 140px;
+  }
+  .trip-reading .page-heading > div:first-child {
+    max-width: calc(100% - 220px);
+  }
+  .trip-reading .page-heading h1 {
+    font-size: 36px;
+  }
+  .trip-reading .illustration-road {
+    width: 190px;
+    height: 90px;
+    top: 35px;
+  }
+  .trip-reading .journey-days {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 32px;
+  }
+  .trip-reading .day-row {
+    padding: 24px 0;
+  }
+  .trip-reading .day-title strong {
+    font-size: 22px;
+  }
+  .trip-reading .wallet-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .trip-reading .wallet-shortcut {
+    padding: 20px;
+  }
+  .trip-reading .wallet-shortcut strong {
+    font-size: 16px;
+  }
+  .trip-reading .wallet-shortcut small {
+    font-size: 9px;
+  }
+  .trip-reading .place-heading h3 {
+    font-size: 23px;
+  }
+}
+@media (max-width: 360px) {
+  .trip-reading .main-content {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .trip-reading .page-heading h1 {
+    font-size: 25px;
+  }
+  .trip-reading .mobile-brand {
+    font-size: 14px;
+  }
+  .trip-reading .mobile-logo {
+    width: 52px;
+  }
+  .trip-reading .search-box {
+    width: 120px;
+  }
+  .trip-reading .trip-count {
+    font-size: 8px;
+  }
+  .trip-reading .wallet-shortcuts {
+    gap: 8px;
+  }
+  .trip-reading .wallet-shortcut {
+    padding: 14px 10px;
+    gap: 6px;
+  }
+  .trip-reading .wallet-shortcut > svg:first-child {
+    width: 18px;
+  }
+  .trip-reading .wallet-shortcut > svg:last-child {
+    display: none;
+  }
+  .trip-reading .reading-tabs button {
+    font-size: 10px;
+    padding: 6px 4px;
+  }
+}

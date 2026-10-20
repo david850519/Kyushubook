@@ -75,7 +75,9 @@ try {
   const tripPath = await tripDownload.path();
   stage = "private-import";
   await page.goto("http://127.0.0.1:4173/");
-  await page.getByRole("heading", { name: "晨萱九州遊", exact: true }).waitFor();
+  await page
+    .getByRole("heading", { name: "晨萱九州遊", exact: true })
+    .waitFor();
   await page.getByText("離線已備妥", { exact: true }).waitFor();
   const leakedRequests = [];
   page.on("request", (request) => {
@@ -104,12 +106,7 @@ try {
     .locator("nav:visible")
     .getByRole("button", { name: "旅務", exact: true })
     .click();
-  const pdfEntry = page
-    .locator(".document-entry")
-    .filter({
-      has: page.getByRole("heading", { name: "九州小書v1.pdf", exact: true }),
-    });
-  await pdfEntry.getByRole("button", { name: "查看附件", exact: true }).click();
+  await page.getByRole("button", { name: "閱讀原始小書", exact: true }).click();
   await page.locator('canvas[data-rendered="true"]').waitFor();
   if (!/1\s*\/\s*36/.test(await page.locator(".reader-tools").innerText()))
     throw new Error("unexpected page count");

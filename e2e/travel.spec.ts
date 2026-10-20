@@ -367,13 +367,11 @@ test("個人花費與匯率保存，加密備份需確認才復原", async ({ pa
     page.getByRole("heading", { name: "測試拉麵", exact: true }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "設定與匯入" }).click();
-  await page
-    .getByLabel("選擇個人備份")
-    .setInputFiles({
-      name: "personal.kybackup",
-      mimeType: "application/json",
-      buffer: Buffer.from(backupText),
-    });
+  await page.getByLabel("選擇個人備份").setInputFiles({
+    name: "personal.kybackup",
+    mimeType: "application/json",
+    buffer: Buffer.from(backupText),
+  });
   await expect(
     page.getByRole("heading", { name: "備份預覽", exact: true }),
   ).toBeVisible();
@@ -459,13 +457,11 @@ test("本機製包工具不傳送檔案，產物可匯回小書", async ({ page,
     )
       mutations.push(request.url());
   });
-  await maker
-    .getByLabel("行程資料 JSON", { exact: true })
-    .setInputFiles({
-      name: "source.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(source)),
-    });
+  await maker.getByLabel("行程資料 JSON", { exact: true }).setInputFiles({
+    name: "source.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(source)),
+  });
   await maker
     .getByLabel("附加 PDF／圖片", { exact: true })
     .setInputFiles(
@@ -521,4 +517,184 @@ test("本機製包工具不傳送檔案，產物可匯回小書", async ({ page,
   await page.getByRole("button", { name: "查看附件", exact: true }).click();
   await expect(page.locator('canvas[data-rendered="true"]')).toBeVisible();
   await maker.close();
+});
+
+test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ page }, testInfo) => {
+  await page.getByRole("button", { name: "設定與匯入" }).click();
+  const [settingsDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "下載示範設定" }).click(),
+  ]);
+  const [packageDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "下載示範旅遊包" }).click(),
+  ]);
+  const settingsText = await readFile((await settingsDownload.path())!, "utf8");
+  const keyring = await parseActivation(settingsText);
+  const sample = await openTrip(
+    parseEnvelope(await readFile((await packageDownload.path())!, "utf8")),
+    keyring,
+  );
+  const themes = [
+    "城下散步",
+    "山野風景",
+    "湖畔小鎮",
+    "小城日和",
+    "海港時光",
+    "街角咖啡",
+    "城市漫步",
+    "歸途",
+  ];
+  const stops = [
+    "山丘展望台",
+    "湖畔散步",
+    "午後咖啡",
+    "湖畔旅宿",
+    "舊城街道",
+    "晚餐食堂",
+  ];
+  const categories = ["展望", "自然", "餐飲", "住宿", "街區", "餐飲"];
+  const trip = {
+    ...sample,
+    revision: sample.revision + 1,
+    title: "晨萱九州遊",
+    demo: false,
+    days: themes.map((title, dayIndex) => ({
+      ...sample.days[0],
+      id: `day-${dayIndex}`,
+      date: new Date(Date.UTC(2027, 3, 12 + dayIndex))
+        .toISOString()
+        .slice(0, 10),
+      title,
+      heroId: undefined,
+      places: stops.map((name, index) => ({
+        ...sample.days[0].places[0],
+        id: `place-${dayIndex}-${index}`,
+        name,
+        category: categories[index],
+        english: "原稿未提供英文名稱",
+        address: "請參閱原稿",
+        period: "彈性",
+        description: "山頂展望與綠意。這是僅在展開後呈現的完整示範內容。",
+        note: "來源：虛構示範原稿。實際安排待確認。",
+      })),
+    })),
+    documents: [
+      {
+        id: "flight-out",
+        title: "出發航班",
+        kind: "航班",
+        detail: "IT999；2027/04/12 TPE Terminal 1 07:10 → HSG 10:25",
+        reference: "DEMO-REFERENCE",
+      },
+      {
+        id: "flight-back",
+        title: "回家航班",
+        kind: "航班",
+        detail: "IT998；2027/04/19 HSG 11:25 → TPE Terminal 1 13:05",
+      },
+      {
+        id: "stay",
+        title: "湖畔旅宿：日期待確認",
+        kind: "住宿",
+        detail: "湖畔的一夜。完整訂房說明保留在原稿資訊。",
+      },
+      {
+        id: "original",
+        title: "虛構小書.pdf",
+        kind: "原始小書",
+        detail: "",
+        assetId: "sample-pdf",
+      },
+      {
+        id: "esim",
+        title: "示範 eSIM.pdf",
+        kind: "PDF 附件",
+        detail: "",
+        assetId: "sample-pdf",
+      },
+      {
+        id: "ticket",
+        title: "景點票券.pdf",
+        kind: "PDF 附件",
+        detail: "",
+        assetId: "sample-pdf",
+      },
+      {
+        id: "flight-file",
+        title: "機票電子確認單.pdf",
+        kind: "PDF 附件",
+        detail: "",
+        assetId: "sample-pdf",
+      },
+      {
+        id: "notes",
+        title: "示範原稿校對",
+        kind: "原稿校對",
+        detail: "此為虛構測試資料，沒有私人資訊。",
+      },
+    ],
+  };
+  await page.getByLabel("選取設定檔與旅遊包").setInputFiles([
+    {
+      name: "settings.kykey",
+      mimeType: "application/octet-stream",
+      buffer: Buffer.from(settingsText),
+    },
+    {
+      name: "trip.kyushu",
+      mimeType: "application/octet-stream",
+      buffer: Buffer.from(JSON.stringify(await sealTrip(trip, keyring))),
+    },
+  ]);
+  await expect(page.getByText("旅遊包匯入完成", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "關閉", exact: true }).click();
+  await expect(page.locator(".day-row")).toHaveCount(8);
+  await expect(
+    page.getByText("旅遊包匯入完成", { exact: true }),
+  ).not.toBeVisible();
+  await expect(page.locator(".day-highlights").first()).toHaveText(
+    "山丘展望台 · 湖畔散步 · 舊城街道",
+  );
+  await page.screenshot({
+    path: testInfo.outputPath("reading-overview.png"),
+    fullPage: true,
+  });
+  await page.locator(".day-row").first().click();
+  await expect(
+    page.getByText("原稿未提供英文名稱", { exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText("請參閱原稿", { exact: true })).toHaveCount(0);
+  await expect(page.locator(".reading-details[open]")).toHaveCount(0);
+  await page.screenshot({
+    path: testInfo.outputPath("reading-day.png"),
+    fullPage: true,
+  });
+  await page.locator(".reading-details > summary").first().click();
+  await expect(
+    page.locator(".reading-details[open] .reading-details-body"),
+  ).toContainText("僅在展開後呈現");
+  await page.getByRole("button", { name: "食光", exact: true }).click();
+  await expect(page.locator(".timeline > li")).toHaveCount(2);
+  await navigate(page, "旅務");
+  await expect(page.locator(".flight-route")).toHaveCount(2);
+  await expect(page.locator(".wallet-shortcut")).toHaveCount(2);
+  await expect(page.locator(".source-notes[open]")).toHaveCount(0);
+  await page.screenshot({
+    path: testInfo.outputPath("reading-wallet.png"),
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "檔案", exact: true }).click();
+  await expect(page.locator(".wallet-entry")).toHaveCount(2);
+  await page.setViewportSize({ width: 320, height: 740 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.getByRole("button", { name: "全部", exact: true }).click();
+  await page.screenshot({
+    path: testInfo.outputPath("reading-wallet-narrow.png"),
+    fullPage: true,
+  });
 });

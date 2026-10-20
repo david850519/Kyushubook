@@ -9,7 +9,6 @@ import {
 import {
   ArrowDownToLine,
   ArrowLeft,
-  ArrowRight,
   BookOpen,
   Check,
   CheckCheck,
@@ -17,11 +16,9 @@ import {
   ClipboardList,
   FileCheck2,
   FileKey2,
-  FileText,
   Image,
   LoaderCircle,
   MapPin,
-  Navigation,
   Search,
   Settings2,
   ShieldCheck,
@@ -49,6 +46,10 @@ import {
 } from "./lib/travel";
 import { emptyPersonal } from "./lib/personal";
 import { downloadText } from "./lib/files";
+import { JourneyDay, JourneyOverview } from "./components/JourneyContent";
+import TripDocuments from "./components/TripDocuments";
+import { dayTitle } from "./lib/tripPresentation";
+import "./trip-reading.css";
 
 const DocumentReader = lazy(() => import("./components/DocumentReader"));
 const Expenses = lazy(() => import("./components/Expenses"));
@@ -365,8 +366,14 @@ function App() {
     { id: "expenses" as const, icon: Wallet, label: "花費" },
   ];
 
+  function selectDay(index: number) {
+    setDayIndex(index);
+    setSearch("");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
   return (
-    <div className="app-shell">
+    <div className="app-shell trip-reading">
       <aside className="desktop-rail">
         <div className="rail-brand">
           <span>KYUSHU TRAVEL NOTES</span>
@@ -448,7 +455,9 @@ function App() {
               <p className="eyebrow">KYUSHU / {pageLabel}</p>
               <h1>
                 {view === "itinerary"
-                  ? (selectedDay?.title ?? tripTitle)
+                  ? selectedDay
+                    ? dayTitle(selectedDay)
+                    : tripTitle
                   : view === "documents"
                     ? "旅務資料"
                     : view === "expenses"
@@ -457,7 +466,9 @@ function App() {
               </h1>
               <p className="page-subtitle">
                 {view === "itinerary"
-                  ? (selectedDay?.subtitle ?? trip.subtitle)
+                  ? selectedDay
+                    ? selectedDay.date.replaceAll("-", ".")
+                    : `${trip.days[0].date.replaceAll("-", ".")} — ${trip.days.at(-1)!.date.replaceAll("-", ".")}`
                   : view === "documents"
                     ? "交通・住宿・隨身票券"
                     : view === "expenses"
@@ -506,11 +517,7 @@ function App() {
                   <span className="trip-count">
                     {trip.days.length} DAY{trip.days.length > 1 ? "S" : ""}
                     <span />
-                    {trip.days.reduce(
-                      (total, day) => total + day.places.length,
-                      0,
-                    )}{" "}
-                    個停留
+                    ROAD TRIP
                   </span>
                 )}
                 <label className="search-box">
@@ -541,8 +548,7 @@ function App() {
                       className="result-row"
                       key={place.id}
                       onClick={() => {
-                        setDayIndex(index);
-                        setSearch("");
+                        selectDay(index);
                       }}
                     >
                       <MapPin size={19} />
@@ -595,106 +601,26 @@ function App() {
                     </figure>
                   )}
                   {selectedDay ? (
-                    <section className="day-content">
-                      <div className="section-heading">
-                        <h2>今日散策</h2>
-                        <span>時間皆為日本當地時間</span>
-                      </div>
-                      <ol className="timeline">
-                        {selectedDay.places.map((place, index) => (
-                          <li key={place.id}>
-                            <div className="timeline-marker">
-                              {String(index + 1).padStart(2, "0")}
-                            </div>
-                            <div className="place-body">
-                              <div className="place-meta">
-                                <span>{place.period}</span>
-                                <span>{place.category}</span>
-                              </div>
-                              <h3>{place.name}</h3>
-                              <p className="place-english">{place.english}</p>
-                              <p className="place-description">
-                                {place.description}
-                              </p>
-                              {place.note && (
-                                <p className="place-note">{place.note}</p>
-                              )}
-                              <div className="place-actions">
-                                <a
-                                  className="map-link icon-button"
-                                  aria-label="開啟地圖"
-                                  title={`在 Google 地圖查看${place.name}`}
-                                  href={
-                                    place.mapUrl ??
-                                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name} ${place.address}`)}`
-                                  }
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  <Navigation size={15} />
-                                </a>
-                              </div>
-                              <p className="place-address">{place.address}</p>
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
-                    </section>
+                    <JourneyDay
+                      key={selectedDay.id}
+                      trip={trip}
+                      index={dayIndex!}
+                      onSelect={selectDay}
+                    />
                   ) : (
-                    <section className="journey-overview">
-                      <div className="section-heading">
-                        <h2>旅程的每一天</h2>
-                        <span>{trip.demo ? "示意日期" : "日本時間"}</span>
-                      </div>
-                      {trip.days.map((day, index) => (
-                        <button
-                          className="day-row"
-                          key={day.id}
-                          onClick={() => setDayIndex(index)}
-                        >
-                          <span className="day-number">
-                            <small>DAY</small>
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                          <span className="day-title">
-                            <small>{day.date.replaceAll("-", ".")}</small>
-                            <strong>{day.title}</strong>
-                            <span>
-                              {day.places
-                                .map((place) => place.name)
-                                .join(" → ")}
-                            </span>
-                          </span>
-                          <ArrowRight size={21} />
-                        </button>
-                      ))}
-                      <div className="travel-summary">
-                        <span className="small-label">KEEP CLOSE</span>
-                        <h2>隨身的旅務資料</h2>
-                        {trip.documents.slice(0, 2).map((document) => (
-                          <button
-                            className="summary-row"
-                            key={document.id}
-                            onClick={() => {
-                              if (document.assetId)
-                                setReader(
-                                  trip.assets.find(
-                                    (asset) => asset.id === document.assetId,
-                                  ) ?? null,
-                                );
-                              else setView("documents");
-                            }}
-                          >
-                            <FileText size={19} />
-                            <span>
-                              {document.title}
-                              <small>{document.kind}</small>
-                            </span>
-                            <ChevronRight size={17} />
-                          </button>
-                        ))}
-                      </div>
-                    </section>
+                    <>
+                      <JourneyOverview trip={trip} onSelect={selectDay} />
+                      <button
+                        className="journey-wallet-link"
+                        onClick={() => setView("documents")}
+                      >
+                        <Ticket size={22} strokeWidth={1.4} />
+                        <span>
+                          隨身旅務<small>交通・住宿・票券</small>
+                        </span>
+                        <ChevronRight size={18} />
+                      </button>
+                    </>
                   )}
                 </>
               )}
@@ -702,41 +628,7 @@ function App() {
           )}
 
           {view === "documents" && (
-            <section className="documents-section">
-              {trip.documents.map((document) => (
-                <article className="document-entry" key={document.id}>
-                  <div className="document-icon">
-                    <Ticket size={23} strokeWidth={1.4} />
-                  </div>
-                  <div className="document-content">
-                    <span className="small-label">{document.kind}</span>
-                    <h2>{document.title}</h2>
-                    <p>{document.detail}</p>
-                    {document.reference && (
-                      <div className="reference-line">
-                        <span>{document.reference}</span>
-                      </div>
-                    )}
-                    {document.assetId && (
-                      <button
-                        className="secondary-button"
-                        onClick={() =>
-                          setReader(
-                            trip.assets.find(
-                              (asset) => asset.id === document.assetId,
-                            ) ?? null,
-                          )
-                        }
-                      >
-                        <FileText size={17} />
-                        查看附件
-                        <ArrowRight size={15} />
-                      </button>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </section>
+            <TripDocuments trip={trip} onOpen={setReader} />
           )}
 
           {view === "checklist" && (
