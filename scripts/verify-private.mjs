@@ -75,7 +75,7 @@ try {
   const tripPath = await tripDownload.path();
   stage = "private-import";
   await page.goto("http://127.0.0.1:4173/");
-  await page.getByRole("heading", { name: "九州小書", exact: true }).waitFor();
+  await page.getByRole("heading", { name: "晨萱九州遊", exact: true }).waitFor();
   await page.getByText("離線已備妥", { exact: true }).waitFor();
   const leakedRequests = [];
   page.on("request", (request) => {

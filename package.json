@@ -12,6 +12,7 @@
     "pretest:e2e": "npm run build",
     "test:e2e": "playwright test",
     "assets:demo": "node scripts/prepare-demo.mjs",
+    "assets:icons": "node scripts/prepare-icons.mjs",
     "private:prepare": "node scripts/prepare-private.mjs",
     "private:verify": "node scripts/verify-private.mjs"
   },

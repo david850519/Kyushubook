@@ -25,7 +25,7 @@ async function makeDemoKit() {
     version: 1,
     id: "kyushu-demo",
     revision: DEMO_REVISION,
-    title: "九州小書",
+    title: "晨萱九州遊",
     subtitle: "熊本的一日散策",
     demo: true,
     days: [

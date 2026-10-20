@@ -54,6 +54,7 @@ const DocumentReader = lazy(() => import("./components/DocumentReader"));
 const Expenses = lazy(() => import("./components/Expenses"));
 const BackupControls = lazy(() => import("./components/BackupControls"));
 const illustrationBase = `${import.meta.env.BASE_URL}illustrations/`;
+const appName = "晨萱九州遊";
 type View = "itinerary" | "documents" | "checklist" | "expenses";
 let startup: Promise<TravelSession> | undefined;
 
@@ -320,13 +321,14 @@ function App() {
     return (
       <main className="loading-screen">
         <BookOpen size={36} />
-        <h1>九州小書</h1>
+        <h1>{appName}</h1>
         <LoaderCircle className="spin" />
         <p>整理行囊中</p>
       </main>
     );
 
   const { trip, record } = session;
+  const tripTitle = trip.title === "九州小書" ? appName : trip.title;
   const selectedDay = dayIndex === null ? null : trip.days[dayIndex];
   const heroDay = selectedDay ?? trip.days[0];
   const hero = trip.assets.find((asset) => asset.id === heroDay.heroId);
@@ -375,7 +377,7 @@ function App() {
             width="170"
             height="121"
           />
-          <p className="rail-caption">旅遊小書</p>
+          <p className="rail-caption">{appName}</p>
         </div>
         <div className="rail-divider" />
         <nav aria-label="桌面主要導覽">
@@ -413,7 +415,7 @@ function App() {
               setDayIndex(null);
               setSearch("");
             }}
-            aria-label="九州小書旅程總覽"
+            aria-label={`${appName}旅程總覽`}
           >
             <img
               className="mobile-logo"
@@ -422,10 +424,10 @@ function App() {
               width="65"
               height="46"
             />
-            <span>旅遊小書</span>
+            <span>{appName}</span>
           </button>
           <span className="desktop-breadcrumb">
-            旅遊手帖 <ChevronRight size={13} /> {pageLabel}
+            {appName} <ChevronRight size={13} /> {pageLabel}
           </span>
           <div className="header-actions">
             {trip.demo && <span className="demo-badge">示範</span>}
@@ -446,7 +448,7 @@ function App() {
               <p className="eyebrow">KYUSHU / {pageLabel}</p>
               <h1>
                 {view === "itinerary"
-                  ? (selectedDay?.title ?? trip.title)
+                  ? (selectedDay?.title ?? tripTitle)
                   : view === "documents"
                     ? "旅務資料"
                     : view === "expenses"
@@ -819,17 +821,20 @@ function App() {
           )}
 
           <footer className="page-footer">
-            <img
-              className="footer-leaves"
-              src={`${illustrationBase}leaves.png`}
-              alt=""
-              aria-hidden="true"
-              width="27"
-              height="40"
-            />
-            <span>九州小書</span>
-            <span className="footer-dot">·</span>
-            <span>{trip.demo ? "示範資料" : `第 ${trip.revision} 版`}</span>
+            <div className="footer-identity">
+              <img
+                className="footer-leaves"
+                src={`${illustrationBase}leaves.png`}
+                alt=""
+                aria-hidden="true"
+                width="27"
+                height="40"
+              />
+              <span>{appName}</span>
+              <span className="footer-dot">·</span>
+              <span>{trip.demo ? "示範資料" : `第 ${trip.revision} 版`}</span>
+            </div>
+            <p className="footer-credit">Made by Koala Travel Agency, 2026</p>
           </footer>
         </main>
       </div>

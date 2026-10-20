@@ -30,11 +30,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["icon-192.png", "icon-512.png"],
+      includeAssets: ["apple-touch-icon.png", "icon-192.png", "icon-512.png"],
       manifest: {
         id: base,
-        name: "九州小書",
-        short_name: "九州小書",
+        name: "晨萱九州遊",
+        short_name: "晨萱九州遊",
         lang: "zh-Hant",
         start_url: base,
         scope: base,

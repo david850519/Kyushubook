@@ -1,10 +1,6 @@
 import { mkdir, writeFile, access, cp } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { chromium } from "@playwright/test";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { BookOpen } from "lucide-react";
 
 const publicDirectory = fileURLToPath(new URL("../public/", import.meta.url));
 await mkdir(`${publicDirectory}/demo`, { recursive: true });
@@ -110,22 +106,7 @@ await cp(
   { recursive: true },
 );
 
-const browser = await chromium.launch({ channel: "msedge", headless: true });
-try {
-  const iconPage = await browser.newPage();
-  const book = renderToStaticMarkup(
-    createElement(BookOpen, { size: "52%", strokeWidth: 1.2 }),
-  );
-  await iconPage.setContent(
-    `<html><style>*{box-sizing:border-box}body{margin:0;background:#456953;color:#fff;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6%;font-family:serif}span{font-size:12vw}svg{height:52%}</style><body>${book}<span>九州</span></body></html>`,
-  );
-  for (const size of [192, 512]) {
-    await iconPage.setViewportSize({ width: size, height: size });
-    await iconPage.screenshot({ path: `${publicDirectory}/icon-${size}.png` });
-  }
-} finally {
-  await browser.close();
-}
+await import("./prepare-icons.mjs");
 console.log(
   "PASS: public sample photo, fictional PDF and local PWA icons generated; no private PDF read.",
 );

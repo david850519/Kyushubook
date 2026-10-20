@@ -1,9 +1,10 @@
-# 九州小書
+# 晨萱九州遊
 
 兩人使用的旅行小書。公開介面仍以熊本示意內容呈現；完整八天私人內容與原始 PDF 只透過本機製包、手機匯入，不放進網站。第二階段已加入個人記帳、換算、加密備份與復原、本機製包及清除確認；iPhone 正式 HTTPS 安裝與實機驗收仍未執行。
 
 ## 已實作
 
+- 網站、瀏覽器分頁與 PWA 名稱為「晨萱九州遊」。既有「九州小書」旅遊包的標題以新名稱顯示，不修改旅遊包、金鑰或個人資料。各分頁內容頁尾保留 `Made by Koala Travel Agency, 2026` 署名。
 - 行程總覽、每日詳情、地點搜尋與純圖示地圖按鈕；已移除可見的「開啟地圖」文字與所有複製功能，保留無障礙名稱與提示。
 - 旅務頁、示意票券、App 內 PDF 閱讀與縮放、照片放大。
 - 個人行前清單、未完成篩選與 IndexedDB 保存；伴手禮清單已依最新需求移除，舊包的採買項目不顯示。
@@ -114,6 +115,7 @@ npm run test:e2e
 ## 資源與授權
 
 - 原稿插圖由使用者提供於本案使用，網頁版只縮小，不修改原始檔；來源對照見 `public/illustrations/README.md`。此紀錄不另行授予第三方再散佈權利。
+- 主畫面圖示採選定的自駕構圖，以原稿小車與山景合成；正式來源為 `src/assets/app-icon-source.png`。`npm run assets:icons` 產生 180px iPhone 圖示與 192／512px PWA 圖示；既有 iPhone 主畫面圖示及名稱可能不會隨網站更新立即變更，請先保留設定、旅遊包與個人備份，不直接刪除 App 或清除網站資料。
 - 城彩苑固定地點 CID 取自 [官方交通頁](https://1592.jp/shisetsu/access) 的 Google Maps iframe；水前寺固定地點 CID 取自 [官方交通頁](https://www.suizenji.or.jp/access/) 的 Google Maps iframe。
 - 熊本城照片：663highland，[Wikimedia Commons 原圖](https://commons.wikimedia.org/wiki/File:Kumamoto_Castle_03n4272.jpg)，[CC BY 2.5](https://creativecommons.org/licenses/by/2.5/)。僅縮放，未改作；畫面亦標示來源。
 - 示範 PDF 由本機工具產生，明確標示 SAMPLE，沒有真實票券條碼或個資。

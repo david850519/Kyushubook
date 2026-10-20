@@ -17,8 +17,12 @@ async function navigate(page: Page, name: string) {
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "九州小書", exact: true }),
+    page.getByRole("heading", { name: "晨萱九州遊", exact: true }),
   ).toBeVisible();
+  await expect(page).toHaveTitle("晨萱九州遊｜隨身旅遊手帖");
+  await expect(page.locator(".footer-credit")).toHaveText(
+    "Made by Koala Travel Agency, 2026",
+  );
   await expect(page.getByText("離線已備妥", { exact: true })).toBeVisible();
 });
 
@@ -68,7 +72,7 @@ test("行前勾選在重開後保留，伴手禮已移除", async ({ page }) => 
   await expect(page.getByRole("checkbox", { name: "護照正本" })).toBeChecked();
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "九州小書", exact: true }),
+    page.getByRole("heading", { name: "晨萱九州遊", exact: true }),
   ).toBeVisible();
   await navigate(page, "清單");
   await expect(page.getByRole("checkbox", { name: "護照正本" })).toBeChecked();
@@ -141,6 +145,21 @@ test("真實選檔匯入新包、拒絕損壞包且不向網路傳送資料", as
   await expect(
     page.getByRole("heading", { name: "私密測試旅程", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "設定與匯入" }).click();
+  const legacyEnvelope = await sealTrip(
+    { ...trip, revision: trip.revision + 2, title: "九州小書", demo: false },
+    keyring,
+  );
+  await importInput.setInputFiles({
+    name: "legacy-trip.kyushu",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from(JSON.stringify(legacyEnvelope)),
+  });
+  await expect(page.getByText("旅遊包匯入完成", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "關閉", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "晨萱九州遊", exact: true }),
+  ).toBeVisible();
   expect(externalRequests).toEqual([]);
 });
 
@@ -201,7 +220,7 @@ test("舊示範資料升版後保留行前勾選並使用固定地圖", async ({
   );
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "九州小書", exact: true }),
+    page.getByRole("heading", { name: "晨萱九州遊", exact: true }),
   ).toBeVisible();
   await navigate(page, "清單");
   await expect(page.getByRole("checkbox", { name: "護照正本" })).toBeChecked();
@@ -219,7 +238,7 @@ test("飛航情境重開，離線 PDF 非空白且可以縮放", async ({ page, 
   await context.setOffline(true);
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "九州小書", exact: true }),
+    page.getByRole("heading", { name: "晨萱九州遊", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("離線中", { exact: true })).toBeVisible();
   await navigate(page, "旅務");
@@ -388,7 +407,7 @@ test("清除本機資料需確認，之後回到無個人紀錄的示範", async
     .click();
   await page.getByRole("button", { name: "確認清除", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "九州小書", exact: true }),
+    page.getByRole("heading", { name: "晨萱九州遊", exact: true }),
   ).toBeVisible();
   await navigate(page, "清單");
   await expect(
