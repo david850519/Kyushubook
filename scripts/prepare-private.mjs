@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { toBase64, validateTrip } from "../src/lib/travel.ts";
+import { MAX_TRIP_BYTES, toBase64, validateTrip } from "../src/lib/travel.ts";
 
 const directory = fileURLToPath(new URL("../private/", import.meta.url));
 const source = validateTrip(
@@ -36,7 +36,7 @@ const content = validateTrip({
   ],
 });
 const text = JSON.stringify(content);
-if (new TextEncoder().encode(text).byteLength > 45 * 1024 * 1024)
+if (new TextEncoder().encode(text).byteLength > MAX_TRIP_BYTES)
   throw new Error("Prepared private source exceeds package limits.");
 await mkdir(directory, { recursive: true });
 await writeFile(`${directory}/ready-trip.json`, text, { mode: 0o600 });

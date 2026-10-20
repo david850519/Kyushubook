@@ -886,7 +886,6 @@ function App() {
               ref={fileInput}
               type="file"
               multiple
-              accept=".json,.kykey,.kyushu,application/json"
               className="sr-only"
               aria-label="選取設定檔與旅遊包"
               onChange={(event) => void selectFiles(event.target.files)}

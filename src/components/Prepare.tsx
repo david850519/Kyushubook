@@ -11,6 +11,7 @@ import {
 import {
   createActivation,
   MAX_FILE_BYTES,
+  MAX_TRIP_BYTES,
   parseActivation,
   sealTrip,
   toBase64,
@@ -230,7 +231,10 @@ export default function Prepare() {
               onChange={(event) => void readAttachments(event.target.files)}
             />
           </label>
-          <p className="muted small-copy">附件合計上限 30 MB</p>
+          <p className="muted small-copy">
+            新增附件合計上限 30 MiB · 整包內容上限{" "}
+            {MAX_TRIP_BYTES / (1024 * 1024)} MiB
+          </p>
           {attachments.length > 0 && (
             <ul className="attachment-list">
               {attachments.map((asset) => (

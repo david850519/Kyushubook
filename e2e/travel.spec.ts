@@ -85,6 +85,14 @@ test("真實選檔匯入新包、拒絕損壞包且不向網路傳送資料", as
       externalRequests.push(request.url());
   });
   await page.getByRole("button", { name: "設定與匯入" }).click();
+  const importInput = page.getByLabel("選取設定檔與旅遊包");
+  await expect(importInput).not.toHaveAttribute("accept", /.+/);
+  await importInput.setInputFiles({
+    name: "unsupported.zip",
+    mimeType: "application/zip",
+    buffer: Buffer.from("PK\u0003\u0004"),
+  });
+  await expect(page.getByRole("alert")).toContainText("檔案格式不正確");
   const [settingsDownload] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("button", { name: "下載示範設定" }).click(),
@@ -106,15 +114,15 @@ test("真實選檔匯入新包、拒絕損壞包且不向網路傳送資料", as
     },
     keyring,
   );
-  await page.getByLabel("選取設定檔與旅遊包").setInputFiles([
+  await importInput.setInputFiles([
     {
       name: "settings.kykey",
-      mimeType: "application/json",
+      mimeType: "application/octet-stream",
       buffer: Buffer.from(settingsText),
     },
     {
       name: "trip.kyushu",
-      mimeType: "application/json",
+      mimeType: "application/octet-stream",
       buffer: Buffer.from(JSON.stringify(envelope)),
     },
   ]);

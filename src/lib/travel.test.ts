@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   createActivation,
   initialDayIndex,
+  MAX_FILE_BYTES,
+  MAX_TRIP_BYTES,
   openTrip,
+  parseEnvelope,
   sealTrip,
   validateTrip,
   type Trip,
@@ -78,6 +81,46 @@ describe("旅遊包與本機持久化", () => {
     expect(JSON.stringify(envelope)).not.toContain("熊本城");
     expect(await openTrip(envelope, keyring)).toEqual(fixture);
     expect(keyring.key.extractable).toBe(false);
+  });
+
+  it("50 MiB 行程能製包並讀回，超過上限仍拒絕", async () => {
+    const trip: Trip = {
+      ...fixture,
+      assets: ["large-1", "large-2"].map((id) => ({
+        id,
+        name: `${id}.pdf`,
+        mime: "application/pdf",
+        data: btoa("%PDF-1.7\n"),
+      })),
+    };
+    const initialBytes = new TextEncoder().encode(JSON.stringify(trip)).length;
+    const paddingBytes = Math.floor((MAX_TRIP_BYTES - initialBytes) / 4) * 4;
+    const firstPadding = Math.floor(paddingBytes / 8) * 4;
+    trip.assets[0].data += "A".repeat(firstPadding);
+    trip.assets[1].data += "A".repeat(paddingBytes - firstPadding);
+    const tripBytes = new TextEncoder().encode(JSON.stringify(trip)).length;
+    expect(tripBytes).toBeGreaterThan(MAX_TRIP_BYTES - 4);
+    expect(tripBytes).toBeLessThanOrEqual(MAX_TRIP_BYTES);
+
+    const { keyring } = await createActivation(trip.id);
+    await expect(
+      sealTrip({ ...trip, title: `${trip.title} exceeds-limit` }, keyring),
+    ).rejects.toThrow("50 MiB");
+    const envelopeText = JSON.stringify(await sealTrip(trip, keyring));
+    const envelopeBytes = new TextEncoder().encode(envelopeText).length;
+    expect(envelopeBytes).toBeGreaterThan(64 * 1024 * 1024);
+    expect(envelopeBytes).toBeLessThan(MAX_FILE_BYTES);
+    const restored = await openTrip(parseEnvelope(envelopeText), keyring);
+    expect(restored.id).toBe(trip.id);
+    expect(restored.assets.map((asset) => asset.data.length)).toEqual(
+      trip.assets.map((asset) => asset.data.length),
+    );
+  }, 60000);
+
+  it("仍拒絕超過 72 MiB 的旅遊包檔案", () => {
+    expect(() => parseEnvelope(" ".repeat(MAX_FILE_BYTES + 1))).toThrow(
+      "72 MiB",
+    );
   });
 
   it("重啟讀取不需密語，並保留個人勾選", async () => {

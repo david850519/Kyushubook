@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const MAX_FILE_BYTES = 64 * 1024 * 1024;
+export const MAX_FILE_BYTES = 72 * 1024 * 1024;
+export const MAX_TRIP_BYTES = 50 * 1024 * 1024;
 
 const identifier = z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/);
 const shortText = z.string().min(1).max(240);
@@ -129,7 +130,7 @@ export function fromBase64(value: string) {
 
 function readJson(text: string): unknown {
   if (new TextEncoder().encode(text).length > MAX_FILE_BYTES)
-    throw new Error("檔案超過 64 MB 上限。");
+    throw new Error("檔案超過 72 MiB 上限。");
   try {
     return JSON.parse(text);
   } catch {
@@ -278,8 +279,8 @@ export async function sealTrip(
   const trip = validateTrip(input);
   if (trip.id !== keyring.tripId) throw new Error("設定檔與旅程不相符。");
   const plaintext = new TextEncoder().encode(JSON.stringify(trip));
-  if (plaintext.byteLength > 45 * 1024 * 1024)
-    throw new Error("旅遊內容超過製包上限，請減少或壓縮附件。");
+  if (plaintext.byteLength > MAX_TRIP_BYTES)
+    throw new Error("旅遊內容超過 50 MiB 製包上限，請減少或壓縮附件。");
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await crypto.subtle.encrypt(
     {
