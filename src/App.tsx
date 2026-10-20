@@ -10,6 +10,7 @@ import {
   ArrowDownToLine,
   ArrowLeft,
   BookOpen,
+  Bookmark,
   Check,
   CheckCheck,
   ChevronRight,
@@ -24,7 +25,6 @@ import {
   ShieldCheck,
   Ticket,
   Upload,
-  WifiOff,
   Wallet,
   X,
 } from "lucide-react";
@@ -54,9 +54,10 @@ import "./trip-reading.css";
 const DocumentReader = lazy(() => import("./components/DocumentReader"));
 const Expenses = lazy(() => import("./components/Expenses"));
 const BackupControls = lazy(() => import("./components/BackupControls"));
+const SavedPlaces = lazy(() => import("./components/SavedPlaces"));
 const illustrationBase = `${import.meta.env.BASE_URL}illustrations/`;
 const appName = "晨萱九州遊";
-type View = "itinerary" | "documents" | "checklist" | "expenses";
+type View = "itinerary" | "documents" | "saved" | "checklist" | "expenses";
 let startup: Promise<TravelSession> | undefined;
 
 function loadSession() {
@@ -341,9 +342,11 @@ function App() {
         : "旅程總覽"
       : view === "documents"
         ? "旅務資料"
-        : view === "expenses"
-          ? "花費紀錄"
-          : "行前準備";
+        : view === "saved"
+          ? "旅行收藏"
+          : view === "expenses"
+            ? "花費紀錄"
+            : "行前準備";
   const listItems = trip.checklist.filter((item) => item.category !== "伴手禮");
   const completed = listItems.filter((item) => record.checked[item.id]).length;
   const visibleItems = listItems.filter(
@@ -362,6 +365,7 @@ function App() {
   const navigationItems = [
     { id: "itinerary" as const, icon: MapPin, label: "行程" },
     { id: "documents" as const, icon: Ticket, label: "旅務" },
+    { id: "saved" as const, icon: Bookmark, label: "收藏" },
     { id: "checklist" as const, icon: ClipboardList, label: "清單" },
     { id: "expenses" as const, icon: Wallet, label: "花費" },
   ];
@@ -460,9 +464,11 @@ function App() {
                     : tripTitle
                   : view === "documents"
                     ? "旅務資料"
-                    : view === "expenses"
-                      ? "花費紀錄"
-                      : "行前準備"}
+                    : view === "saved"
+                      ? "想去的地方"
+                      : view === "expenses"
+                        ? "花費紀錄"
+                        : "行前準備"}
               </h1>
               <p className="page-subtitle">
                 {view === "itinerary"
@@ -471,27 +477,15 @@ function App() {
                     : `${trip.days[0].date.replaceAll("-", ".")} — ${trip.days.at(-1)!.date.replaceAll("-", ".")}`
                   : view === "documents"
                     ? "交通・住宿・隨身票券"
-                    : view === "expenses"
-                      ? "日圓・新臺幣"
-                      : "行囊輕一點，準備剛剛好。"}
+                    : view === "saved"
+                      ? trip.placeList
+                        ? `${trip.placeList.places.length} 個收藏 · ${trip.placeList.title}`
+                        : "九州・口袋名單"
+                      : view === "expenses"
+                        ? "日圓・新臺幣"
+                        : "行囊輕一點，準備剛剛好。"}
               </p>
             </div>
-            <span className={`offline-pill ${isOfflineReady ? "ready" : ""}`}>
-              {!online ? (
-                <WifiOff size={14} />
-              ) : isOfflineReady ? (
-                <CheckCheck size={14} />
-              ) : (
-                <LoaderCircle size={14} className="spin" />
-              )}
-              {!online
-                ? "離線中"
-                : isOfflineReady
-                  ? "離線已備妥"
-                  : import.meta.env.DEV
-                    ? "開發預覽"
-                    : "離線準備中"}
-            </span>
             <img
               className={`heading-illustration ${view === "checklist" ? "illustration-suitcase" : "illustration-road"}`}
               src={`${illustrationBase}${view === "checklist" ? "suitcase.png" : "road-trip.png"}`}
@@ -629,6 +623,23 @@ function App() {
 
           {view === "documents" && (
             <TripDocuments trip={trip} onOpen={setReader} />
+          )}
+
+          {view === "saved" && (
+            <Suspense
+              fallback={
+                <p className="reader-fallback">
+                  <LoaderCircle className="spin" />
+                  讀取收藏
+                </p>
+              }
+            >
+              <SavedPlaces
+                key={`${trip.id}-${trip.revision}`}
+                trip={trip}
+                onImport={() => setShowSettings(true)}
+              />
+            </Suspense>
           )}
 
           {view === "checklist" && (

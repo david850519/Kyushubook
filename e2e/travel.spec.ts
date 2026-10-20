@@ -23,7 +23,10 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator(".footer-credit")).toHaveText(
     "Made by Koala Travel Agency, 2026",
   );
-  await expect(page.getByText("離線已備妥", { exact: true })).toBeVisible();
+  await page.evaluate(() =>
+    navigator.serviceWorker.ready.then(() => undefined),
+  );
+  await expect(page.locator(".offline-pill")).toHaveCount(0);
 });
 
 test("搜尋、當日詳情與導航連結", async ({ page }) => {
@@ -240,7 +243,10 @@ test("飛航情境重開，離線 PDF 非空白且可以縮放", async ({ page, 
   await expect(
     page.getByRole("heading", { name: "晨萱九州遊", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("離線中", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "設定與匯入" }).click();
+  await expect(page.getByText("目前離線", { exact: true })).toBeVisible();
+  await expect(page.getByText("離線資源已備妥", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "關閉", exact: true }).click();
   await navigate(page, "旅務");
   await page.getByRole("button", { name: "查看附件" }).click();
   const canvas = page.locator('canvas[data-rendered="true"]');
@@ -570,7 +576,7 @@ test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ pa
       places: stops.map((name, index) => ({
         ...sample.days[0].places[0],
         id: `place-${dayIndex}-${index}`,
-        name,
+        name: dayIndex === 3 && index === 3 ? "第四天原稿住宿待確認" : name,
         category: categories[index],
         english: "原稿未提供英文名稱",
         address: "請參閱原稿",
@@ -634,6 +640,41 @@ test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ pa
         detail: "此為虛構測試資料，沒有私人資訊。",
       },
     ],
+    placeList: {
+      title: "示範收藏",
+      sourceUrl: "https://maps.app.goo.gl/example",
+      importedAt: "2027-04-01T00:00:00.000Z",
+      places: [
+        {
+          id: "saved-1",
+          name: "第一咖啡",
+          region: "熊本",
+          address: "示範熊本地址",
+          mapUrl: "https://www.google.com/maps?cid=123",
+        },
+        {
+          id: "saved-2",
+          name: "第二咖啡",
+          region: "熊本",
+          address: "示範熊本地址",
+          mapUrl: "https://www.google.com/maps?cid=456",
+        },
+        {
+          id: "saved-3",
+          name: "湖邊甜點",
+          region: "由布院",
+          address: "示範由布院地址",
+          mapUrl: "https://www.google.com/maps?cid=789",
+        },
+        {
+          id: "saved-4",
+          name: "街角食堂",
+          region: "福岡",
+          address: "示範福岡地址",
+          mapUrl: "https://www.google.com/maps?cid=101112",
+        },
+      ],
+    },
   };
   await page.getByLabel("選取設定檔與旅遊包").setInputFiles([
     {
@@ -650,6 +691,9 @@ test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ pa
   await expect(page.getByText("旅遊包匯入完成", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "關閉", exact: true }).click();
   await expect(page.locator(".day-row")).toHaveCount(8);
+  await expect(page.locator(".day-row").nth(3).locator(".day-stay")).toHaveText(
+    "湖畔旅宿 · 續住",
+  );
   await expect(
     page.getByText("旅遊包匯入完成", { exact: true }),
   ).not.toBeVisible();
@@ -697,4 +741,30 @@ test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ pa
     path: testInfo.outputPath("reading-wallet-narrow.png"),
     fullPage: true,
   });
+  await navigate(page, "收藏");
+  await expect(page.locator(".saved-place")).toHaveCount(4);
+  await page
+    .getByRole("group", { name: "收藏地區" })
+    .getByRole("button", { name: /^熊本/ })
+    .click();
+  await expect(page.locator(".saved-place")).toHaveCount(2);
+  await page.getByRole("textbox", { name: "搜尋收藏地點" }).fill("第二");
+  await expect(page.locator(".saved-place")).toHaveCount(1);
+  await expect(
+    page.getByRole("link", { name: "在 Google 地圖開啟第二咖啡" }),
+  ).toHaveAttribute("href", "https://www.google.com/maps?cid=456");
+  await page.getByRole("button", { name: "清除收藏搜尋" }).click();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("saved-places-narrow.png"),
+    fullPage: true,
+  });
+  await page.context().setOffline(true);
+  await page.reload();
+  await navigate(page, "收藏");
+  await expect(page.locator(".saved-place")).toHaveCount(4);
 });

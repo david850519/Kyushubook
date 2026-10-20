@@ -11,6 +11,7 @@ import {
   dayHighlights,
   dayTitle,
   excerpt,
+  journeyPlaces,
   meaningfulText,
   needsConfirmation,
 } from "../lib/tripPresentation";
@@ -39,7 +40,9 @@ export function JourneyOverview({
       </div>
       <div className="journey-days">
         {trip.days.map((day, index) => {
-          const stay = day.places.find((place) => place.category === "住宿");
+          const stay = journeyPlaces(trip, index).find(
+            (place) => place.category === "住宿",
+          );
           return (
             <button
               className="day-row"
@@ -59,7 +62,10 @@ export function JourneyOverview({
                 {stay && (
                   <span className="day-stay">
                     <BedDouble size={12} />
-                    <span>{stay.name}</span>
+                    <span>
+                      {stay.name}
+                      {stay.period === "續住" ? " · 續住" : ""}
+                    </span>
                   </span>
                 )}
               </span>
@@ -83,7 +89,8 @@ export function JourneyDay({
 }) {
   const [filter, setFilter] = useState("all");
   const day = trip.days[index];
-  const places = day.places.filter((place) => {
+  const allPlaces = journeyPlaces(trip, index);
+  const places = allPlaces.filter((place) => {
     if (filter === "food") return /餐飲|預約/.test(place.category);
     if (filter === "stays") return /住宿|交通|租車/.test(place.category);
     if (filter === "sights")
@@ -117,7 +124,7 @@ export function JourneyDay({
       )}
       <ol className="timeline reading-timeline">
         {places.map((place) => {
-          const originalIndex = day.places.indexOf(place);
+          const originalIndex = allPlaces.indexOf(place);
           const english = meaningfulText(place.english);
           const address = meaningfulText(place.address);
           const summary = excerpt(place.description);
@@ -131,7 +138,9 @@ export function JourneyDay({
               <div className="place-body">
                 <div className="place-meta">
                   <span>{place.category}</span>
-                  {time && <time>{time}</time>}
+                  {(time || place.period === "續住") && (
+                    <time>{time || "續住"}</time>
+                  )}
                   {pending && <span className="confirmation-mark">待確認</span>}
                 </div>
                 <div className="place-heading">

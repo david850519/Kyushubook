@@ -5,6 +5,22 @@ export const MAX_TRIP_BYTES = 50 * 1024 * 1024;
 
 const identifier = z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/);
 const shortText = z.string().min(1).max(240);
+const googleMapsUrl = z
+  .string()
+  .url()
+  .max(2048)
+  .refine((value) => {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      [
+        "maps.app.goo.gl",
+        "www.google.com",
+        "maps.google.com",
+        "goo.gl",
+      ].includes(url.hostname)
+    );
+  }, "地圖網址必須是 Google Maps 的 HTTPS 連結");
 const assetSchema = z.object({
   id: identifier,
   name: shortText,
@@ -37,23 +53,7 @@ export const tripSchema = z.object({
               category: shortText,
               description: z.string().max(2000),
               address: shortText,
-              mapUrl: z
-                .string()
-                .url()
-                .max(2048)
-                .refine((value) => {
-                  const url = new URL(value);
-                  return (
-                    url.protocol === "https:" &&
-                    [
-                      "maps.app.goo.gl",
-                      "www.google.com",
-                      "maps.google.com",
-                      "goo.gl",
-                    ].includes(url.hostname)
-                  );
-                }, "地圖網址必須是 Google Maps 的 HTTPS 連結")
-                .optional(),
+              mapUrl: googleMapsUrl.optional(),
               note: z.string().max(500).optional(),
             }),
           )
@@ -79,6 +79,27 @@ export const tripSchema = z.object({
     )
     .max(100),
   assets: z.array(assetSchema).max(50),
+  placeList: z
+    .object({
+      title: shortText,
+      sourceUrl: googleMapsUrl,
+      importedAt: z.string().datetime(),
+      places: z
+        .array(
+          z.object({
+            id: identifier,
+            name: shortText,
+            region: shortText,
+            address: z.string().max(1000),
+            mapUrl: googleMapsUrl,
+            latitude: z.number().min(-90).max(90).optional(),
+            longitude: z.number().min(-180).max(180).optional(),
+            note: z.string().max(2000).optional(),
+          }),
+        )
+        .max(300),
+    })
+    .optional(),
 });
 
 const activationSchema = z.object({
@@ -142,6 +163,12 @@ export function validateTrip(input: unknown): Trip {
   const parsed = tripSchema.safeParse(input);
   if (!parsed.success) throw new Error("旅遊內容格式或版本不支援。");
   const trip = parsed.data;
+  if (
+    trip.placeList &&
+    new Set(trip.placeList.places.map((place) => place.id)).size !==
+      trip.placeList.places.length
+  )
+    throw new Error("收藏清單含有重複地點。");
   const assetIds = new Set(trip.assets.map((asset) => asset.id));
   if (
     assetIds.size !== trip.assets.length ||

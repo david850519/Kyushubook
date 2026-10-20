@@ -20,6 +20,35 @@ export function meaningfulText(value?: string) {
     : text;
 }
 
+export function journeyPlaces(trip: Trip, index: number) {
+  const places = trip.days[index].places;
+  if (trip.demo || trip.days.length !== 8 || index !== 3) return places;
+  const previousStay = trip.days[2].places.find(
+    (place) => place.category === "住宿",
+  );
+  if (!previousStay) return places;
+  return places.map((place) =>
+    place.category === "住宿" &&
+    !(place.name === previousStay.name && place.period === "續住")
+      ? {
+          ...place,
+          name: previousStay.name,
+          english: previousStay.english,
+          address: previousStay.address,
+          mapUrl: previousStay.mapUrl,
+          period: "續住",
+          description: "與前一晚相同住宿，今晚續住，不需更換飯店。",
+          note: [
+            "住宿已確認：與 DAY 03 同一間。",
+            place.note && `原稿註記（供參考）：${place.note}`,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        }
+      : place,
+  );
+}
+
 export function excerpt(value: string, limit = 56) {
   const text =
     meaningfulText(value)

@@ -7,12 +7,59 @@ import {
   excerpt,
   flightInfo,
   isOriginalBook,
+  journeyPlaces,
   meaningfulText,
   needsConfirmation,
 } from "./tripPresentation";
 import type { Trip } from "./travel";
 
 describe("旅行小書的閱讀層級", () => {
+  it("本次八天旅程第四天沿用第三天住宿，不改原包或其他日程", () => {
+    const hotel = {
+      id: "hotel",
+      name: "第三天旅宿",
+      english: "Example Hotel",
+      period: "15:00 入住",
+      category: "住宿",
+      description: "原始住宿資料",
+      address: "示範地址",
+      mapUrl: "https://maps.app.goo.gl/example",
+    };
+    const trip = {
+      demo: false,
+      days: Array.from({ length: 8 }, (_, index) => ({
+        id: `day-${index}`,
+        date: `2027-04-${String(12 + index).padStart(2, "0")}`,
+        title: "示範日程",
+        subtitle: "",
+        places: [{ ...hotel, id: `hotel-${index}` }],
+      })),
+    } as Trip;
+    trip.days[3].places[0].name = "原稿第四天住宿待確認";
+    expect(journeyPlaces(trip, 3)[0]).toMatchObject({
+      id: "hotel-3",
+      name: "第三天旅宿",
+      period: "續住",
+      address: hotel.address,
+      mapUrl: hotel.mapUrl,
+    });
+    expect(trip.days[3].places[0].name).toBe("原稿第四天住宿待確認");
+    const corrected = {
+      ...trip,
+      days: trip.days.map((day, index) => ({
+        ...day,
+        places: journeyPlaces(trip, index),
+      })),
+    };
+    expect(journeyPlaces(corrected, 3)[0].note).toBe(
+      corrected.days[3].places[0].note,
+    );
+    expect(journeyPlaces(trip, 2)).toBe(trip.days[2].places);
+    expect(journeyPlaces({ ...trip, demo: true }, 3)).toBe(trip.days[3].places);
+    trip.days[2].places = [];
+    expect(journeyPlaces(trip, 3)).toBe(trip.days[3].places);
+  });
+
   it("隱藏缺漏佔位字，將長文縮成摘要而不改原文", () => {
     expect(meaningfulText("原稿未提供英文名稱")).toBe("");
     expect(meaningfulText("請參閱原稿")).toBe("");

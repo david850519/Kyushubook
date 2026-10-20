@@ -213,4 +213,62 @@ describe("旅遊包與本機持久化", () => {
       initialDayIndex(fixture, new Date("2027-05-12T00:00:00Z")),
     ).toBeNull();
   });
+
+  it("收藏清單隨旅遊包加密，沿用金鑰更新仍保留勾選", async () => {
+    const { file, keyring } = await createActivation(fixture.id);
+    await importTravel(
+      JSON.stringify(await sealTrip(fixture, keyring)),
+      JSON.stringify(file),
+    );
+    await setChecked(fixture.id, "passport", true);
+    const updated: Trip = {
+      ...fixture,
+      revision: 2,
+      placeList: {
+        title: "示範收藏",
+        sourceUrl: "https://maps.app.goo.gl/example",
+        importedAt: "2027-04-01T00:00:00.000Z",
+        places: [
+          {
+            id: "map-1",
+            name: "示範咖啡店",
+            region: "熊本",
+            address: "示範地址",
+            mapUrl: "https://www.google.com/maps?cid=123",
+            latitude: 32.8,
+            longitude: 130.7,
+          },
+        ],
+      },
+    };
+    const envelopeText = JSON.stringify(await sealTrip(updated, keyring));
+    expect(envelopeText).not.toContain("示範咖啡店");
+    await importTravel(envelopeText);
+    const restored = await restoreSession();
+    expect(restored?.trip.placeList).toEqual(updated.placeList);
+    expect(restored?.record.checked.passport).toBe(true);
+    expect(() =>
+      validateTrip({
+        ...updated,
+        placeList: {
+          ...updated.placeList,
+          places: [updated.placeList!.places[0], updated.placeList!.places[0]],
+        },
+      }),
+    ).toThrow("重複地點");
+    expect(() =>
+      validateTrip({
+        ...updated,
+        placeList: {
+          ...updated.placeList,
+          places: [
+            {
+              ...updated.placeList!.places[0],
+              mapUrl: "https://example.com/fake-map",
+            },
+          ],
+        },
+      }),
+    ).toThrow();
+  });
 });

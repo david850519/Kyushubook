@@ -78,7 +78,9 @@ try {
   await page
     .getByRole("heading", { name: "晨萱九州遊", exact: true })
     .waitFor();
-  await page.getByText("離線已備妥", { exact: true }).waitFor();
+  await page.evaluate(() =>
+    navigator.serviceWorker.ready.then(() => undefined),
+  );
   const leakedRequests = [];
   page.on("request", (request) => {
     if (
