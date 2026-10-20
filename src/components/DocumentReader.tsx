@@ -154,7 +154,13 @@ export default function DocumentReader({ asset }: { asset: TravelAsset }) {
           {error}
         </p>
       ) : (
-        <div ref={container} className="pdf-stage" aria-busy={rendering}>
+        <div
+          ref={container}
+          className="pdf-stage"
+          aria-busy={rendering}
+          tabIndex={0}
+          aria-label="PDF 頁面"
+        >
           {rendering && (
             <span className="pdf-loading">
               <LoaderCircle className="spin" /> 讀取附件

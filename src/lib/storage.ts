@@ -12,10 +12,12 @@ import {
   expenseSchema,
   openBackup,
   personalSchema,
+  referenceRateSchema,
   sealBackup,
   type BackupData,
   type Expense,
   type PersonalState,
+  type ReferenceRate,
 } from "./personal";
 
 export type TravelRecord = {
@@ -122,7 +124,20 @@ export function deleteExpense(tripId: string, expenseId: string) {
 }
 
 export function saveRate(tripId: string, rateMicros: number | null) {
-  return updatePersonal(tripId, (state) => ({ ...state, rateMicros }));
+  return updatePersonal(tripId, (state) => {
+    const updated = { ...state, rateMicros };
+    delete updated.rateQuote;
+    return updated;
+  });
+}
+
+export function saveReferenceRate(tripId: string, quote: ReferenceRate) {
+  const verified = referenceRateSchema.parse(quote);
+  return updatePersonal(tripId, (state) => ({
+    ...state,
+    rateMicros: verified.rateMicros,
+    rateQuote: verified,
+  }));
 }
 
 export async function exportPersonalBackup(): Promise<string> {

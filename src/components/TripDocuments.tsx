@@ -177,7 +177,7 @@ export default function TripDocuments({
                       {(document.detail || document.reference) && (
                         <details className="reading-details document-details">
                           <summary>
-                            訂位與原稿資訊
+                            詳細資訊
                             <ChevronDown size={14} />
                           </summary>
                           <div className="reading-details-body">
@@ -203,7 +203,7 @@ export default function TripDocuments({
       {!!notes.length && (
         <details className="source-notes reading-details">
           <summary>
-            原稿整理註記
+            旅途筆記
             <ChevronDown size={15} />
           </summary>
           <div className="reading-details-body">

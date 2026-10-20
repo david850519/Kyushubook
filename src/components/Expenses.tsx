@@ -1,14 +1,12 @@
 import { useState, type FormEvent } from "react";
+import { Check, Pencil, Plus, Save, RefreshCw, Trash2, X } from "lucide-react";
 import {
-  ArrowRightLeft,
-  Check,
-  Pencil,
-  Plus,
-  Save,
-  Trash2,
-  X,
-} from "lucide-react";
-import { deleteExpense, saveExpense, saveRate } from "../lib/storage";
+  deleteExpense,
+  saveExpense,
+  saveRate,
+  saveReferenceRate,
+} from "../lib/storage";
+import { fetchReferenceRate } from "../lib/exchange";
 import {
   convertMinor,
   expenseCategories,
@@ -59,6 +57,8 @@ export default function Expenses({
   const [conversionCurrency, setConversionCurrency] =
     useState<Expense["currency"]>("JPY");
   const [saved, setSaved] = useState("");
+  const [rateBusy, setRateBusy] = useState(false);
+  const [rateError, setRateError] = useState("");
   const totals = expenseTotals(personal);
   const entries = personal.expenses
     .filter((expense) => category === "all" || expense.category === category)
@@ -144,6 +144,7 @@ export default function Expenses({
     event.preventDefault();
     setBusy(true);
     setError("");
+    setRateError("");
     try {
       onChange(await saveRate(tripId, parseRate(rateInput)));
       setSaved("參考匯率已儲存");
@@ -151,6 +152,28 @@ export default function Expenses({
       setError(failure instanceof Error ? failure.message : "匯率無法儲存。");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function updateReferenceRate() {
+    setRateError("");
+    if (!navigator.onLine) {
+      setRateError("目前離線，沿用已儲存匯率。");
+      return;
+    }
+    setRateBusy(true);
+    try {
+      const quote = await fetchReferenceRate(personal.rateQuote);
+      onChange(await saveReferenceRate(tripId, quote));
+      setRateInput(String(quote.rateMicros / 1000000));
+    } catch (failure: unknown) {
+      setRateError(
+        failure instanceof Error
+          ? failure.message
+          : "目前無法更新匯率，已保留原有設定。",
+      );
+    } finally {
+      setRateBusy(false);
     }
   }
 
@@ -372,7 +395,16 @@ export default function Expenses({
       <section className="exchange-section">
         <div className="section-heading">
           <h2>匯率換算</h2>
-          <ArrowRightLeft size={19} />
+          <button
+            type="button"
+            className="icon-button"
+            title="更新網路參考匯率"
+            aria-label="更新網路參考匯率"
+            disabled={rateBusy || busy}
+            onClick={() => void updateReferenceRate()}
+          >
+            <RefreshCw size={18} className={rateBusy ? "spin" : undefined} />
+          </button>
         </div>
         <form
           onSubmit={(event) => void submitRate(event)}
@@ -393,12 +425,43 @@ export default function Expenses({
             className="icon-button"
             title="儲存參考匯率"
             aria-label="儲存參考匯率"
-            disabled={busy}
+            disabled={busy || rateBusy}
           >
             <Save size={18} />
           </button>
         </form>
-        <span className="muted small-copy">手動參考匯率 · 非刷卡結算匯率</span>
+        <div className="rate-source">
+          {personal.rateQuote ? (
+            <>
+              <span>
+                每日參考價 ·{" "}
+                {new Intl.DateTimeFormat("zh-TW", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "Asia/Tokyo",
+                }).format(new Date(personal.rateQuote.updatedAt))}{" "}
+                日本時間
+              </span>
+              <a
+                href="https://www.exchangerate-api.com"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Rates By Exchange Rate API
+              </a>
+            </>
+          ) : (
+            <span>手動匯率</span>
+          )}
+          <span>非銀行買賣價或刷卡結算匯率</span>
+        </div>
+        {rateError && (
+          <p className="rate-error" role="alert">
+            {rateError}
+          </p>
+        )}
         <div className="form-grid conversion-form">
           <label className="field-label">
             換算金額

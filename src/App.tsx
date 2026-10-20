@@ -20,7 +20,6 @@ import {
   Image,
   LoaderCircle,
   MapPin,
-  Search,
   Settings2,
   ShieldCheck,
   Ticket,
@@ -93,7 +92,29 @@ function Modal({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
+    const scrollY = window.scrollY;
+    const body = window.document.body;
+    const previous = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    Object.assign(body.style, {
+      position: "fixed",
+      top: `-${scrollY}px`,
+      left: "0",
+      right: "0",
+      width: "100%",
+      overflow: "hidden",
+    });
     dialog.current?.showModal();
+    return () => {
+      Object.assign(body.style, previous);
+      window.scrollTo({ top: scrollY, behavior: "instant" });
+    };
   }, []);
   return (
     <dialog
@@ -137,7 +158,6 @@ function App() {
   const [fatal, setFatal] = useState("");
   const [view, setView] = useState<View>("itinerary");
   const [dayIndex, setDayIndex] = useState<number | null>(null);
-  const [search, setSearch] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [reader, setReader] = useState<TravelAsset | null>(null);
   const [pendingOnly, setPendingOnly] = useState(false);
@@ -353,15 +373,6 @@ function App() {
     (item) => !pendingOnly || !record.checked[item.id],
   );
   const categories = [...new Set(visibleItems.map((item) => item.category))];
-  const matches = trip.days.flatMap((day, index) =>
-    day.places
-      .filter((place) =>
-        `${place.name} ${place.english} ${place.address}`
-          .toLowerCase()
-          .includes(search.trim().toLowerCase()),
-      )
-      .map((place) => ({ place, index })),
-  );
   const navigationItems = [
     { id: "itinerary" as const, icon: MapPin, label: "行程" },
     { id: "documents" as const, icon: Ticket, label: "旅務" },
@@ -372,7 +383,6 @@ function App() {
 
   function selectDay(index: number) {
     setDayIndex(index);
-    setSearch("");
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
@@ -399,7 +409,6 @@ function App() {
               aria-current={view === id ? "page" : undefined}
               onClick={() => {
                 setView(id);
-                setSearch("");
               }}
             >
               <Icon size={19} />
@@ -424,7 +433,6 @@ function App() {
             onClick={() => {
               setView("itinerary");
               setDayIndex(null);
-              setSearch("");
             }}
             aria-label={`${appName}旅程總覽`}
           >
@@ -514,110 +522,63 @@ function App() {
                     ROAD TRIP
                   </span>
                 )}
-                <label className="search-box">
-                  <Search size={16} />
-                  <input
-                    aria-label="搜尋地點"
-                    placeholder="找一個地方"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                  {search && (
-                    <button
-                      className="search-clear"
-                      title="清除搜尋"
-                      aria-label="清除搜尋"
-                      onClick={() => setSearch("")}
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </label>
               </div>
-              {search.trim() ? (
-                <section className="search-results" aria-label="搜尋結果">
-                  <h2>找到 {matches.length} 個地方</h2>
-                  {matches.map(({ place, index }) => (
+              <>
+                {hero && (
+                  <figure className="trip-photo">
                     <button
-                      className="result-row"
-                      key={place.id}
-                      onClick={() => {
-                        selectDay(index);
-                      }}
+                      onClick={() => setReader(hero)}
+                      aria-label={`放大${hero.name}照片`}
                     >
-                      <MapPin size={19} />
+                      <AssetImage asset={hero} />
+                      <span className="photo-index">
+                        {selectedDay
+                          ? `DAY ${String((dayIndex ?? 0) + 1).padStart(2, "0")}`
+                          : "01 / THE JOURNEY"}
+                        <span>{heroDay.title}</span>
+                      </span>
+                      <Image className="photo-expand" size={19} />
+                    </button>
+                    {trip.demo && (
+                      <figcaption>
+                        熊本城{" "}
+                        <span>
+                          Photo:{" "}
+                          <a
+                            href="https://commons.wikimedia.org/wiki/File:Kumamoto_Castle_03n4272.jpg"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            663highland · CC BY 2.5
+                          </a>
+                        </span>
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
+                {selectedDay ? (
+                  <JourneyDay
+                    key={selectedDay.id}
+                    trip={trip}
+                    index={dayIndex!}
+                    onSelect={selectDay}
+                  />
+                ) : (
+                  <>
+                    <JourneyOverview trip={trip} onSelect={selectDay} />
+                    <button
+                      className="journey-wallet-link"
+                      onClick={() => setView("documents")}
+                    >
+                      <Ticket size={22} strokeWidth={1.4} />
                       <span>
-                        <strong>{place.name}</strong>
-                        <small>
-                          DAY {String(index + 1).padStart(2, "0")} ·{" "}
-                          {place.address}
-                        </small>
+                        隨身旅務<small>交通・住宿・票券</small>
                       </span>
                       <ChevronRight size={18} />
                     </button>
-                  ))}
-                  {!matches.length && (
-                    <p className="empty-message">沒有找到這個地方。</p>
-                  )}
-                </section>
-              ) : (
-                <>
-                  {hero && (
-                    <figure className="trip-photo">
-                      <button
-                        onClick={() => setReader(hero)}
-                        aria-label={`放大${hero.name}照片`}
-                      >
-                        <AssetImage asset={hero} />
-                        <span className="photo-index">
-                          {selectedDay
-                            ? `DAY ${String((dayIndex ?? 0) + 1).padStart(2, "0")}`
-                            : "01 / THE JOURNEY"}
-                          <span>{heroDay.title}</span>
-                        </span>
-                        <Image className="photo-expand" size={19} />
-                      </button>
-                      {trip.demo && (
-                        <figcaption>
-                          熊本城{" "}
-                          <span>
-                            Photo:{" "}
-                            <a
-                              href="https://commons.wikimedia.org/wiki/File:Kumamoto_Castle_03n4272.jpg"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              663highland · CC BY 2.5
-                            </a>
-                          </span>
-                        </figcaption>
-                      )}
-                    </figure>
-                  )}
-                  {selectedDay ? (
-                    <JourneyDay
-                      key={selectedDay.id}
-                      trip={trip}
-                      index={dayIndex!}
-                      onSelect={selectDay}
-                    />
-                  ) : (
-                    <>
-                      <JourneyOverview trip={trip} onSelect={selectDay} />
-                      <button
-                        className="journey-wallet-link"
-                        onClick={() => setView("documents")}
-                      >
-                        <Ticket size={22} strokeWidth={1.4} />
-                        <span>
-                          隨身旅務<small>交通・住宿・票券</small>
-                        </span>
-                        <ChevronRight size={18} />
-                      </button>
-                    </>
-                  )}
-                </>
-              )}
+                  </>
+                )}
+              </>
             </>
           )}
 
@@ -750,7 +711,6 @@ function App() {
             className={view === id ? "active" : ""}
             onClick={() => {
               setView(id);
-              setSearch("");
               window.scrollTo({ top: 0 });
             }}
           >

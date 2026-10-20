@@ -36,7 +36,6 @@ export function JourneyOverview({
     <section className="journey-overview">
       <div className="section-heading">
         <h2>旅程的每一天</h2>
-        <span>OUR LITTLE JOURNEY</span>
       </div>
       <div className="journey-days">
         {trip.days.map((day, index) => {
@@ -69,7 +68,15 @@ export function JourneyOverview({
                   </span>
                 )}
               </span>
-              <ArrowRight size={18} />
+              <span className="day-row-action" aria-hidden="true">
+                <img
+                  src={`${import.meta.env.BASE_URL}illustrations/${index === 0 || index === trip.days.length - 1 ? "plane.png" : index % 2 ? "camera.png" : "leaves.png"}`}
+                  alt=""
+                  width="40"
+                  height="36"
+                />
+                <ArrowRight size={16} />
+              </span>
             </button>
           );
         })}
@@ -142,6 +149,9 @@ export function JourneyDay({
                     <time>{time || "續住"}</time>
                   )}
                   {pending && <span className="confirmation-mark">待確認</span>}
+                  {place.period === "依當日開放" && (
+                    <span className="confirmation-mark">當日管制</span>
+                  )}
                 </div>
                 <div className="place-heading">
                   <h3>{place.name}</h3>
@@ -163,7 +173,7 @@ export function JourneyDay({
                 {summary && <p className="place-excerpt">{summary}</p>}
                 <details className="reading-details">
                   <summary>
-                    原稿與備註
+                    景點資訊
                     <ChevronDown size={14} />
                   </summary>
                   <div className="reading-details-body">

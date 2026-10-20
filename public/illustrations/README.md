@@ -8,6 +8,8 @@
 | road-trip.png | 去背-20261019T051434Z-1-001/去背/車＋景.png |
 | suitcase.png | 去背-20261019T051434Z-1-001/去背/行李箱.png |
 | leaves.png | 去背-20261019T051434Z-1-001/去背/小草2.png |
+| camera.png | 去背-20261019T051434Z-1-001/去背/相機.png |
+| plane.png | 去背-20261019T051434Z-1-001/去背/飛機.png |
 
 主畫面圖示另以同組原稿的「車.png」與「景.png」重新構圖，選定來源保存在 `src/assets/app-icon-source.png`，由 `npm run assets:icons` 產生正式尺寸；原始提供的素材不變。
 

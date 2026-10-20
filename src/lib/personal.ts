@@ -25,6 +25,15 @@ export const expenseSchema = z.object({
   category: z.enum(expenseCategories),
   note: z.string().max(300),
 });
+export const referenceRateSchema = z.object({
+  provider: z.literal("ExchangeRate-API"),
+  rateMicros: z.number().int().min(1).max(10000000),
+  updatedAt: z.string().datetime(),
+  nextUpdateAt: z.string().datetime(),
+  fetchedAt: z.string().datetime(),
+});
+export type ReferenceRate = z.infer<typeof referenceRateSchema>;
+
 export const personalSchema = z.object({
   expenses: z
     .array(expenseSchema)
@@ -33,6 +42,7 @@ export const personalSchema = z.object({
       (items) => new Set(items.map((item) => item.id)).size === items.length,
     ),
   rateMicros: z.number().int().min(1).max(10000000).nullable(),
+  rateQuote: referenceRateSchema.optional(),
 });
 export type Expense = z.infer<typeof expenseSchema>;
 export type PersonalState = z.infer<typeof personalSchema>;

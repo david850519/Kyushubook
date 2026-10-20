@@ -29,12 +29,12 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator(".offline-pill")).toHaveCount(0);
 });
 
-test("搜尋、當日詳情與導航連結", async ({ page }) => {
-  await page.getByRole("textbox", { name: "搜尋地點" }).fill("水前寺");
+test("精簡總覽、當日詳情與導航連結", async ({ page }) => {
+  await expect(page.getByRole("textbox", { name: "搜尋地點" })).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "找到 1 個地方" }),
-  ).toBeVisible();
-  await page.locator(".result-row").click();
+    page.getByText("OUR LITTLE JOURNEY", { exact: true }),
+  ).toHaveCount(0);
+  await page.locator(".day-row").first().click();
   await expect(page.getByRole("heading", { name: "今日散策" })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "水前寺成趣園", exact: true }),
@@ -263,6 +263,40 @@ test("飛航情境重開，離線 PDF 非空白且可以縮放", async ({ page, 
   await page.getByRole("button", { name: "放大", exact: true }).click();
   await expect(page.locator(".zoom-label")).toHaveText("125%");
   await expect(page.locator('canvas[data-rendered="true"]')).toBeVisible();
+  await expect(page.locator("body")).toHaveCSS("position", "fixed");
+  for (let step = 0; step < 3; step++)
+    await page.getByRole("button", { name: "放大", exact: true }).click();
+  await expect(page.locator('canvas[data-rendered="true"]')).toBeVisible();
+  await expect(page.locator(".pdf-stage")).toHaveCSS(
+    "overscroll-behavior",
+    "contain",
+  );
+  const viewport = page.viewportSize()!;
+  const modal = await page.locator(".modal-wide").boundingBox();
+  expect(modal!.height).toBeGreaterThan(viewport.height * 0.9);
+  if (viewport.width < 800)
+    expect(modal!.width).toBeGreaterThan(viewport.width * 0.98);
+  await page.locator(".pdf-stage").evaluate((element) => {
+    element.scrollTop = 80;
+  });
+  expect(
+    await page.locator(".pdf-stage").evaluate((element) => element.scrollTop),
+  ).toBeGreaterThan(0);
+  const backgroundPosition = await page
+    .locator("body")
+    .evaluate((element) =>
+      Math.max(0, -Number.parseFloat(element.style.top || "0")),
+    );
+  await page.locator(".pdf-stage").hover();
+  await page.mouse.wheel(0, 120);
+  await expect
+    .poll(() =>
+      page.locator(".pdf-stage").evaluate((element) => element.scrollTop),
+    )
+    .toBeGreaterThan(80);
+  await page.getByRole("button", { name: "關閉", exact: true }).click();
+  await expect(page.locator("body")).not.toHaveCSS("position", "fixed");
+  expect(await page.evaluate(() => scrollY)).toBe(backgroundPosition);
   expect(errors).toEqual([]);
 });
 
@@ -767,4 +801,64 @@ test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ pa
   await page.reload();
   await navigate(page, "收藏");
   await expect(page.locator(".saved-place")).toHaveCount(4);
+});
+
+test("網路參考匯率保存，手動與離線設定仍受保護", async ({ page, context }) => {
+  const endpoint = "https://open.er-api.com/v6/latest/JPY";
+  let requests = 0;
+  await page.route(endpoint, async (route) => {
+    requests++;
+    const now = Math.floor(Date.now() / 1000);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        result: "success",
+        base_code: "JPY",
+        time_last_update_unix: now - 60,
+        time_next_update_unix: now + 86400,
+        rates: { TWD: 0.214321 },
+      }),
+    });
+  });
+  await navigate(page, "花費");
+  await page.getByRole("button", { name: "更新網路參考匯率" }).click();
+  await expect(page.getByRole("textbox", { name: "參考匯率" })).toHaveValue(
+    "0.214321",
+  );
+  await expect(page.locator(".rate-source")).toContainText("每日參考價");
+  await expect(
+    page.getByRole("link", { name: "Rates By Exchange Rate API" }),
+  ).toHaveAttribute("href", "https://www.exchangerate-api.com");
+  await page.reload();
+  await navigate(page, "花費");
+  await expect(page.getByRole("textbox", { name: "參考匯率" })).toHaveValue(
+    "0.214321",
+  );
+  await page.getByRole("button", { name: "更新網路參考匯率" }).click();
+  await expect(
+    page.getByRole("button", { name: "更新網路參考匯率" }),
+  ).toBeEnabled();
+  expect(requests).toBe(1);
+  await page.getByRole("textbox", { name: "參考匯率" }).fill("0.25");
+  await page.getByRole("button", { name: "儲存參考匯率" }).click();
+  await expect(page.locator(".rate-source")).toContainText("手動匯率");
+  await page.route(endpoint, (route) =>
+    route.fulfill({
+      status: 503,
+      headers: { "access-control-allow-origin": "*" },
+    }),
+  );
+  await page.getByRole("button", { name: "更新網路參考匯率" }).click();
+  await expect(page.locator(".rate-error")).toContainText("已保留原有設定");
+  await expect(page.getByRole("textbox", { name: "參考匯率" })).toHaveValue(
+    "0.25",
+  );
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "更新網路參考匯率" }).click();
+  await expect(page.locator(".rate-error")).toContainText("目前離線");
+  await expect(page.getByRole("textbox", { name: "參考匯率" })).toHaveValue(
+    "0.25",
+  );
 });
