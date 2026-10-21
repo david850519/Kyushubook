@@ -4,6 +4,7 @@ import {
   BookOpen,
   ChevronDown,
   FileText,
+  Image,
   Plane,
   Ticket,
   Wifi,
@@ -34,10 +35,24 @@ export default function TripDocuments({
   onOpen: (asset: TravelAsset) => void;
 }) {
   const [filter, setFilter] = useState("all");
+  const [esimOpen, setEsimOpen] = useState(false);
+  const esimDocuments = trip.documents.filter(
+    (document) => document.assetId && /esim/i.test(document.title),
+  );
+  const esimImages = esimDocuments.filter((document) =>
+    trip.assets.some(
+      (asset) =>
+        asset.id === document.assetId && asset.mime.startsWith("image/"),
+    ),
+  );
+  const originalBooks = trip.documents.filter(
+    (document) => document.assetId && isOriginalBook(document),
+  );
   const featured = trip.documents.filter(
     (document) =>
       document.assetId &&
-      (isOriginalBook(document) || /eSIM/i.test(document.title)),
+      (isOriginalBook(document) ||
+        (esimImages.length === 0 && document === esimDocuments[0])),
   );
   const notes = trip.documents.filter(
     (document) => documentGroup(document) === "notes",
@@ -48,30 +63,66 @@ export default function TripDocuments({
   }
   return (
     <section className="documents-section travel-wallet">
-      {!!featured.length && (
+      {!!(originalBooks.length || esimDocuments.length) && (
         <div className="wallet-shortcuts">
-          {featured.map((document) => {
-            const original = isOriginalBook(document);
-            const Icon = original ? BookOpen : Wifi;
+          {originalBooks.map((document) => {
             return (
               <button
                 className="wallet-shortcut"
                 key={document.id}
                 onClick={() => openAsset(document.assetId!)}
-                aria-label={original ? "閱讀原始小書" : "查看 eSIM 憑證"}
+                aria-label="閱讀原始小書"
               >
-                <Icon size={24} strokeWidth={1.4} />
+                <BookOpen size={24} strokeWidth={1.4} />
                 <span>
-                  <strong>{original ? "旅遊小書" : "eSIM 憑證"}</strong>
-                  <small>
-                    {original ? "THE ORIGINAL BOOK" : "STAY CONNECTED"}
-                  </small>
+                  <strong>旅遊小書</strong>
+                  <small>THE ORIGINAL BOOK</small>
                 </span>
                 <ArrowRight size={16} />
               </button>
             );
           })}
+          {!!esimDocuments.length && (
+            <button
+              className="wallet-shortcut"
+              aria-label="查看 eSIM 憑證"
+              aria-expanded={esimImages.length ? esimOpen : undefined}
+              aria-controls={esimImages.length ? "esim-credentials" : undefined}
+              onClick={() =>
+                esimImages.length
+                  ? setEsimOpen(!esimOpen)
+                  : openAsset(esimDocuments[0].assetId!)
+              }
+            >
+              <Wifi size={24} strokeWidth={1.4} />
+              <span>
+                <strong>eSIM 憑證</strong>
+                <small>STAY CONNECTED</small>
+              </span>
+              <ArrowRight size={16} />
+            </button>
+          )}
         </div>
+      )}
+      {esimOpen && esimImages.length > 0 && (
+        <section
+          className="esim-credentials"
+          id="esim-credentials"
+          aria-label="eSIM 圖片憑證"
+        >
+          {esimImages.map((document) => (
+            <button
+              key={document.id}
+              className="esim-credential"
+              onClick={() => openAsset(document.assetId!)}
+              aria-label={`查看${document.title}`}
+            >
+              <Image size={22} strokeWidth={1.4} />
+              <span>{document.title}</span>
+              <ArrowRight size={16} />
+            </button>
+          ))}
+        </section>
       )}
       <div
         className="reading-tabs wallet-tabs"

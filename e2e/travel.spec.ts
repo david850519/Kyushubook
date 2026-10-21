@@ -673,6 +673,33 @@ test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ pa
         kind: "原稿校對",
         detail: "此為虛構測試資料，沒有私人資訊。",
       },
+      {
+        id: "esim-a",
+        title: "旅伴A eSIM",
+        kind: "eSIM 憑證",
+        detail: "",
+        assetId: "esim-photo-a",
+      },
+      {
+        id: "esim-b",
+        title: "旅伴B eSIM",
+        kind: "eSIM 憑證",
+        detail: "",
+        assetId: "esim-photo-b",
+      },
+    ],
+    assets: [
+      ...sample.assets,
+      {
+        ...sample.assets.find((asset) => asset.mime === "image/jpeg")!,
+        id: "esim-photo-a",
+        name: "Sample A eSIM.jpg",
+      },
+      {
+        ...sample.assets.find((asset) => asset.mime === "image/jpeg")!,
+        id: "esim-photo-b",
+        name: "Sample B eSIM.jpg",
+      },
     ],
     placeList: {
       title: "示範收藏",
@@ -757,13 +784,47 @@ test("八天閱讀版：精簡總覽、景點展開與旅務分類", async ({ pa
   await navigate(page, "旅務");
   await expect(page.locator(".flight-route")).toHaveCount(2);
   await expect(page.locator(".wallet-shortcut")).toHaveCount(2);
+  await expect(
+    page.getByRole("button", { name: "查看 eSIM 憑證", exact: true }),
+  ).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "查看 eSIM 憑證", exact: true })
+    .click();
+  await expect(page.locator(".esim-credential")).toHaveCount(2);
+  for (const [title, filename] of [
+    ["旅伴A eSIM", "Sample A eSIM.jpg"],
+    ["旅伴B eSIM", "Sample B eSIM.jpg"],
+  ]) {
+    await page
+      .getByRole("button", { name: `查看${title}`, exact: true })
+      .click();
+    await expect
+      .poll(() =>
+        page
+          .locator(".image-stage img")
+          .evaluate((image) => (image as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0);
+    await expect(page.locator(".image-stage img")).toHaveAttribute(
+      "alt",
+      filename,
+    );
+    await page.getByRole("button", { name: "關閉", exact: true }).click();
+  }
+  await expect(
+    page
+      .locator(".document-entry")
+      .filter({
+        has: page.getByRole("heading", { name: "示範 eSIM", exact: true }),
+      }),
+  ).toHaveCount(1);
   await expect(page.locator(".source-notes[open]")).toHaveCount(0);
   await page.screenshot({
     path: testInfo.outputPath("reading-wallet.png"),
     fullPage: true,
   });
   await page.getByRole("button", { name: "檔案", exact: true }).click();
-  await expect(page.locator(".wallet-entry")).toHaveCount(2);
+  await expect(page.locator(".wallet-entry")).toHaveCount(5);
   await page.setViewportSize({ width: 320, height: 740 });
   expect(
     await page.evaluate(
